@@ -63,7 +63,9 @@ static zend_always_inline zval* zend_vm_get_zval(
         zend_free_op *should_free,
 #endif
         int type) {
-#if PHP_VERSION_ID >= 80000
+#if PHP_VERSION_ID >= 80200
+    return zend_get_zval_ptr(opline, op_type, node, execute_data);
+#elif PHP_VERSION_ID >= 80000
     return zend_get_zval_ptr(opline, op_type, node, execute_data, type);
 #elif PHP_VERSION_ID >= 70300
     return zend_get_zval_ptr(opline, op_type, node, execute_data, should_free, type);
@@ -240,7 +242,11 @@ void zend_nocheq_optimize(zend_op_array *ops) {
                         ai = &ops->arg_info[opline->op1.num-1];
 
                         if (ZEND_TYPE_IS_SET(ai->type) &&
+#if PHP_VERSION_ID >= 80200
+                            ZEND_TYPE_PURE_MASK(ai->type) != MAY_BE_DOUBLE) {
+#else
                             ZEND_TYPE_CODE(ai->type) != IS_DOUBLE) {
+#endif
                             opline->opcode  = ZEND_NOP;
                         }
                     }
@@ -251,7 +257,11 @@ void zend_nocheq_optimize(zend_op_array *ops) {
                         ai = &ops->arg_info[opline->op1.num-1];
 
                         if (ZEND_TYPE_IS_SET(ai->type) &&
+#if PHP_VERSION_ID >= 80200
+                            ZEND_TYPE_PURE_MASK(ai->type) != MAY_BE_DOUBLE) {
+#else
                             ZEND_TYPE_CODE(ai->type) != IS_DOUBLE) {
+#endif
                             opline->opcode = ZEND_NOCHEQ_RECV_INIT;
                             opline->handler = zend_nocheq_recv_init_handler;
                         }
@@ -263,7 +273,11 @@ void zend_nocheq_optimize(zend_op_array *ops) {
                         ai = &ops->arg_info[opline->op1.num-1];
 
                         if (ZEND_TYPE_IS_SET(ai->type) &&
+#if PHP_VERSION_ID >= 80200
+                            ZEND_TYPE_PURE_MASK(ai->type) != MAY_BE_DOUBLE) {
+#else
                             ZEND_TYPE_CODE(ai->type) != IS_DOUBLE) {
+#endif
                             opline->opcode = ZEND_NOCHEQ_RECV_VARIADIC;
                             opline->handler = zend_nocheq_recv_variadic_handler;
                         }
@@ -274,7 +288,11 @@ void zend_nocheq_optimize(zend_op_array *ops) {
                     ai = ops->arg_info - 1;
 
                     if (ZEND_TYPE_IS_SET(ai->type) &&
-                        ZEND_TYPE_CODE(ai->type) != IS_DOUBLE) {
+#if PHP_VERSION_ID >= 80200
+                            ZEND_TYPE_PURE_MASK(ai->type) != MAY_BE_DOUBLE) {
+#else
+                            ZEND_TYPE_CODE(ai->type) != IS_DOUBLE) {
+#endif
                         opline->opcode = ZEND_NOP;
                     }
                 break;
